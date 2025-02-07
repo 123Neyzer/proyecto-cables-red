@@ -1,0 +1,17 @@
+{
+    "name": "cables-de-red-proyecto",
+    "version": "1.0.0",
+    "description": "Proyecto de pruebas de velocidad de red",
+    "scripts": {
+      "start": "vercel dev",
+      "deploy": "vercel deploy --prod"
+    },
+    "dependencies": {
+      "serverless-mysql": "^1.5.4"
+    },
+    "devDependencies": {
+      "vercel": "^28.0.0"
+    }
+  }
+  
+  

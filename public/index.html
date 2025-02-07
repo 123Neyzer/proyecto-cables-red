@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cables de Red: Conectando el Mundo Digital</title>
+    <style>
+        /* ... (mantén los estilos existentes) ... */
+    </style>
+</head>
+<body>
+    <!-- ... (mantén el contenido HTML existente) ... -->
+
+    <script>
+        document.getElementById('startTest').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<p>Realizando prueba de conexión...</p>';
+            try {
+                const response = await fetch('/api/test-network', { method: 'POST' });
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="card" style="margin-top: 1rem;">
+                        <h4 style="color: ${data.estado === 'Correcta' ? 'green' : 'red'}">
+                            ${data.message}
+                        </h4>
+                        <p><strong>Fecha:</strong> ${new Date(data.fecha).toLocaleString()}</p>
+                        <p><strong>Velocidad de descarga:</strong> ${data.downloadSpeed.toFixed(2)} Mbps</p>
+                        <p><strong>Velocidad de subida:</strong> ${data.uploadSpeed.toFixed(2)} Mbps</p>
+                        <p><strong>Ping:</strong> ${data.ping.toFixed(2)} ms</p>
+                        <p><strong>Estado:</strong> ${data.estado}</p>
+                    </div>
+                `;
+                loadTestHistory();
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="card" style="margin-top: 1rem; color: red;">
+                        <p>Error al realizar la prueba de red.</p>
+                    </div>
+                `;
+            }
+        });
+
+        async function loadTestHistory() {
+            try {
+                const response = await fetch('/api/network-tests');
+                const tests = await response.json();
+                const tableBody = document.querySelector('#historyTable tbody');
+                tableBody.innerHTML = '';
+                tests.forEach(test => {
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${new Date(test.fecha).toLocaleString()}</td>
+                        <td>${test.download_speed ? `${test.download_speed.toFixed(2)} Mbps` : '0 Mbps'}</td>
+                        <td>${test.upload_speed ? `${test.upload_speed.toFixed(2)} Mbps` : '0 Mbps'}</td>
+                        <td>${test.ping ? `${test.ping.toFixed(2)} ms` : '0 ms'}</td>
+                        <td style="color: ${test.estado === 'Correcta' ? 'green' : 'red'}">${test.estado}</td>
+                        <td><button class="delete-btn" data-id="${test.id}">Eliminar</button></td>
+                    `;
+                });
+                addDeleteListeners();
+            } catch (error) {
+                console.error('Error al cargar el historial de pruebas:', error);
+            }
+        }
+
+        function addDeleteListeners() {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const id = this.getAttribute('data-id');
+                    if (confirm('¿Estás seguro de que quieres eliminar esta prueba?')) {
+                        try {
+                            const response = await fetch(`/api/delete-test?id=${id}`, { method: 'DELETE' });
+                            if (response.ok) {
+                                loadTestHistory(); // Recargar la lista después de eliminar
+                            } else {
+                                alert('Error al eliminar la prueba');
+                            }
+                        } catch (error) {
+                            console.error('Error al eliminar la prueba:', error);
+                            alert('Error al eliminar la prueba');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Cargar el historial de pruebas al iniciar la página
+        document.addEventListener('DOMContentLoaded', loadTestHistory);
+    </script>
+</body>
+</html>
+
